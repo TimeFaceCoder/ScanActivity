@@ -394,7 +394,7 @@ void handle(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
 	int y1 = scrQuad[min_len_index].y;
 	int x2 = scrQuad[max_len_index].x;
 	int y2 = scrQuad[max_len_index].y;
-	int y;
+	float y;
 
 	for(i=0;i<4;i++)
 	{
@@ -410,7 +410,8 @@ void handle(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
 		{
 			int scrx = scrQuad[i].x;
 			int scry = scrQuad[i].y;
-			y = (y1-y2)/(x1-x2)*scrx+(x1*y2-x2*y1)/(x1-x2);
+			y = (y1-y2)/(float)(x1-x2)*scrx+(x1*y2-x2*y1)/(float)(x1-x2);
+			LOGE("find y = %f", y);
 			if(y > scry)
 			{
 				result[1] = scrQuad[i];
@@ -422,16 +423,13 @@ void handle(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
 		}
 	}
 
+	for (i=0 ; i<4 ; i++) {
+			LOGD("find scr point x = %f y = %f", scrQuad[i].x,scrQuad[i].y);
+	}
 
-//	for (i=0 ; i<4 ; i++) {
-//		LOGD("find point index = %i x = %f y = %f", index, scrQuad[index].x,scrQuad[index].y);
-//		result[i] = scrQuad[index];
-//		if (index >= 3) {
-//			index = 0;
-//		} else {
-//			index ++;
-//		}
-//	}
+	for (i=0 ; i<4 ; i++) {
+		LOGD("find point x = %f y = %f", result[i].x,result[i].y);
+	}
 }
 
 void crop(const char* file, vector<Point> points){
