@@ -37,7 +37,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nScan(
 	return result;
 }
 
-JNIEXPORT void JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nCrop(JNIEnv *env, jclass obj, jstring prompt, jobjectArray array)
+JNIEXPORT void JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nCrop(JNIEnv *env, jclass obj, jstring prompt, jobjectArray array, jintArray sides, jstring result)
 {
 	LOGD("jni nCrop start");
 	if(prompt == NULL || array == NULL)
@@ -66,10 +66,17 @@ JNIEXPORT void JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nCrop(JNIEnv *
 		  LOGD("jni fuzhi op doing. coldata[0] = %i, coldata[1] = %i", coldata[0], coldata[1]);
 		  jniData[i] = Point(coldata[0], coldata[1]);
 	  }
-	  env->ReleaseIntArrayElements((jintArray)myarray, coldata,0 );
+	  env->ReleaseIntArrayElements((jintArray)myarray, coldata, 0);
 
 	}
+
+	int len = env->GetArrayLength(sides);
+	int jniside[len];
+	for(i=0;i<len;i++)
+	{
+		jniside[i] = env->GetIntArrayElements(sides, 0)[i];
+	}
 	LOGD("jni crop op start");
-	crop(env->GetStringUTFChars(prompt, 0), jniData);
+	crop(env->GetStringUTFChars(prompt, 0), jniData, jniside, env->GetStringUTFChars(result, 0));
 	LOGD("jni nCrop end");
 }

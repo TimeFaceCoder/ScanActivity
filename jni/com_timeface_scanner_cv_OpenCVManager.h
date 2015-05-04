@@ -21,7 +21,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nScan
  * Signature: (Ljava/lang/String;[[I)V
  */
 JNIEXPORT void JNICALL Java_com_timeface_scanner_cv_OpenCVManager_nCrop
-  (JNIEnv *, jclass, jstring, jobjectArray);
+  (JNIEnv *, jclass, jstring, jobjectArray, jintArray, jstring);
 
 #ifdef __cplusplus
 }

@@ -121,7 +121,7 @@ public class ScanHandleActivity extends Activity implements ImageHandleListener 
 				if (file.exists()) {
 					file.delete();
 				}
-				mOpenCVManager.cropImage(mContentImagePath, mPointMap, mResultImageSide);
+				mOpenCVManager.cropImage(mContentImagePath, mPointMap, mResultImageSide, resultImagePath);
 				showProgressDialog(getString(R.string.crop_dialog_title), getString(R.string.crop_dialog_msg));
 			}
 		});

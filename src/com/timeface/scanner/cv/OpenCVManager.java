@@ -62,7 +62,8 @@ public class OpenCVManager {
 				mImageHandleListener.onScanFinish();
 				break;
 			case MSG_IMAGE_CROP:
-				nCrop(mCropImgPath, mCropPointArray, mResultImageSide);
+				String resultPath = (String) msg.obj;
+				nCrop(mCropImgPath, mCropPointArray, mResultImageSide, resultPath);
 				mImageHandleListener.onScanFinish();
 				break;
 
@@ -143,7 +144,7 @@ public class OpenCVManager {
     	return new Point(array[0], array[1]);
 	}
     
-    public void cropImage(String path, HashMap<PointLocation,Point> pointMap, int[] resultImageSide){
+    public void cropImage(String path, HashMap<PointLocation,Point> pointMap, int[] resultImageSide, final String resultPath){
     	if (pointMap == null || pointMap.size() < 4) {
     		return;
     	}
@@ -163,7 +164,7 @@ public class OpenCVManager {
 			
 			@Override
 			public void run() {
-				mHandler.sendEmptyMessage(MSG_IMAGE_CROP);
+				mHandler.sendMessage(Message.obtain(mHandler, MSG_IMAGE_CROP, resultPath));
 			}
 		});
     }
@@ -173,6 +174,6 @@ public class OpenCVManager {
 	}
     
     private static native int[][] nScan(String path);
-    private static native void nCrop(String path, int[][] pointArray, int[] resultImageSide);
+    private static native void nCrop(String path, int[][] pointArray, int[] resultImageSide, String resultPath);
 
 }

@@ -68,6 +68,9 @@ Point2f computeIntersect(Line l1, Line l2) {
   return Point2f(-1, -1);
 }
 
+/**
+ * 方法一
+ */
 void scan(const char* file, bool debug = true) {
 	LOGD("path: %s \n",file);
   /* get input image */
@@ -200,6 +203,9 @@ void scan(const char* file, bool debug = true) {
   // for visualization only
 }
 
+/**
+ * 方法二
+ */
 void find_squares(const char* file)
 {
 	IplImage* pImgSrc = NULL;    //源图像
@@ -247,7 +253,9 @@ double angle(cv::Point pt1, cv::Point pt2, cv::Point pt0 ) {
     return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-
+/**
+ * 方法三
+ */
 void find_squares2(const char* file, vector<vector<Point> >& squares)
 {
 	LOGD("path: %s \n",file);
@@ -315,6 +323,15 @@ void find_squares2(const char* file, vector<vector<Point> >& squares)
             }
         }
     }
+    if(squares.size() == 0)
+    {
+    	vector<Point> approx;
+    	approx.push_back(Point(0,0));
+    	approx.push_back(Point(image.size().width,0));
+    	approx.push_back(Point(image.size().width,image.size().height));
+    	approx.push_back(Point(0,image.size().height));
+    	squares.push_back(approx);
+    }
     image.release();
     blurred.release();
     LOGD("squares size: %i \n", squares.size());
@@ -368,7 +385,10 @@ float min_y(vector <Point> points)
 	return mindata;
 }
 
-void handle(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
+/**
+ * 给已知的四个点确定位置
+ */
+void findPoint(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
 {
 
 	int i,len = 4;
@@ -432,7 +452,10 @@ void handle(CvPoint2D32f scrQuad[], CvPoint2D32f result[])
 	}
 }
 
-void crop(const char* file, vector<Point> points){
+/**
+ * 切图方法
+ */
+void crop(const char* file, vector<Point> points, int jniside[], const char* resultFile){
 	LOGD("crop start");
 	// 读取图片
 	Mat image = imread(file);
@@ -443,33 +466,41 @@ void crop(const char* file, vector<Point> points){
 
 	LOGD("crop op start newimage width = %i height = %i", row_starte-row_end, col_starte - col_end);
 	// 裁剪图片
-	Range row_r;
-	row_r.start=row_starte;
-	row_r.end =row_end;
-	Range col_r;
-	col_r.start=col_starte;
-	col_r.end=col_end;
-	Mat cropped_image = Mat(image, row_r, col_r);
+	int row,col,r_len = row_end - row_starte,c_len = col_end - col_starte;
+	if(r_len > c_len)
+	{
+		row = max(jniside[0], jniside[1]);
+		col = min(jniside[0], jniside[1]);
+	}
+	else
+	{
+		row = min(jniside[0], jniside[1]);
+		col = max(jniside[0], jniside[1]);
+	}
+
+	LOGD("crop op start newcropped_image row = %i col = %i", row, col);
+	Mat cropped_image = Mat(row, col, image.type());
 
 	LOGD("fuzhi op start");
 	// 透视变换
-	IplImage *dst,temp;
-	temp = IplImage(cropped_image);
-	IplImage *src = &temp;
-	dst = cvCloneImage(src);
-	dst->origin = src->origin;
+	IplImage *src,*dst,temp,temp2;
+	temp = IplImage(image);
+	src = &temp;
+	temp2 = IplImage(cropped_image);
+	dst = &temp2;
+//	dst->origin = src->origin;
 	cvZero(dst);
 
 	CvMat* wap_matrix = cvCreateMat(3, 3, CV_32FC1);
 	CvPoint2D32f scrQuad[4], handledScrQuad[4], dstQuad[4];
-	scrQuad[0].x = points[0].x - col_starte;
-	scrQuad[0].y = points[0].y - row_starte;
-	scrQuad[1].x = points[1].x - col_starte;
-	scrQuad[1].y = points[1].y - row_starte;
-	scrQuad[2].x = points[2].x - col_starte;
-	scrQuad[2].y = points[2].y - row_starte;
-	scrQuad[3].x = points[3].x - col_starte;
-	scrQuad[3].y = points[3].y - row_starte;
+	scrQuad[0].x = points[0].x;
+	scrQuad[0].y = points[0].y;
+	scrQuad[1].x = points[1].x;
+	scrQuad[1].y = points[1].y;
+	scrQuad[2].x = points[2].x;
+	scrQuad[2].y = points[2].y;
+	scrQuad[3].x = points[3].x;
+	scrQuad[3].y = points[3].y;
 	dstQuad[0].x = 0;
 	dstQuad[0].y = 0;
 	dstQuad[1].x = cropped_image.size().width;
@@ -478,7 +509,7 @@ void crop(const char* file, vector<Point> points){
 	dstQuad[2].y = cropped_image.size().height;
 	dstQuad[3].x = 0;
 	dstQuad[3].y = cropped_image.size().height;
-	handle(scrQuad, handledScrQuad);
+	findPoint(scrQuad, handledScrQuad);
 
 	LOGD("cvGetPerspectiveTransform op start");
 	cvGetPerspectiveTransform(
@@ -492,11 +523,15 @@ void crop(const char* file, vector<Point> points){
 
 	LOGD("imwrite op start");
 	Mat tmp_mat = Mat(dst);
-	imwrite("/sdcard/doc3.jpg", tmp_mat);
+	imwrite(resultFile, tmp_mat);
 //	dst.release();
 //	blurred.release();
 	LOGD("Release op start");
-	cvReleaseImage(&dst);
+//	image.release();
+	tmp_mat.release();
+	cropped_image.release();
 	cvReleaseMat(&wap_matrix);
+	cvReleaseImage(&dst);
+//	cvReleaseImage(&src);
 	LOGD("crop end");
 }
