@@ -3,4 +3,8 @@
     <string name="app_name">scanner</string>
     <string name="scan">扫描</string>
     <string name="error">扫描出现错误了！</string>
+    <string name="scan_dialog_title">扫描</string>
+    <string name="scan_dialog_msg">正在扫描，请稍候&#8230;</string>
+    <string name="crop_dialog_title">剪裁</string>
+    <string name="crop_dialog_msg">正在处理，请稍候&#8230;</string>
 </resources>
